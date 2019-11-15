@@ -1,0 +1,50 @@
+# I've learned to clean up my system every time I start a new code in R. It's a good habit so I'll use it now as well.
+
+rm(list = ls())
+
+# At first we have to make an object to store any desirable matrix in the temporary memory (temp.mem). 
+# Like "Caching the Mean of a Vector" this object overwrite old data with NULL every time it’s called
+
+
+makeCacheMatrix <- function(x = matrix()) {
+
+          inv <- NULL
+          set <- function(y) {
+                    x <<- y
+                    inv <<- NULL
+          }
+          get <- function() x
+          setinv <- function(inverse) inv <<- inverse 
+          getinv <- function() inv
+          list(set=set, get=get, setinv=setinv, getinv=getinv)
+}
+
+# Having done that, we have to write a function that recalls stored data at the temporary memory. 
+# If he finds "NULL" (meaning no cached data) he will calculate the inverse and put this at the temporary memory.
+# If there he finds not Null, he will inform you and returns the cached Matrix.
+
+cacheSolve <- function(x, ...) {
+          inv <- x$getinv()
+          if (!is.null(inv)){
+                    message("Getting cached data for you")
+                    return(inv)
+          }
+          
+          Input <- x$get()
+          inv <- solve(Input, ...)
+          x$setinv(inv)
+          
+          return(inv)
+}
+
+# At last we have to create a matrix to test if the code works.
+# I could have combine this together in just one function but choose to do it like this 
+# because you do it like this when you use this in a real situation. Then you won’t recreate existing matrixes in a function to store them either…right? .  
+
+set.seed(500)
+Matrix = matrix(rnorm(1600), nrow=4, ncol=4)
+
+temp.mem <- makeCacheMatrix(Matrix)
+cacheSolve(temp.mem) # Null, he will have to create one and store this.
+
+cacheSolve(temp.mem) # second time, He will recall the old one.
